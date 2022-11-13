@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import pyvirtualcam
+import time
 from PIL import Image, ImageDraw, ImageFont
 
 FONT = 'JetBrainsMono-Medium.ttf'
@@ -11,6 +11,7 @@ CAM_FPS = 10
 ASCII_WIDTH = 64
 ASCII_HEIGHT = 36
 ASCII = '$8#hpZLYvr/)[_>I"\               '[::-1]
+REMOVE_LIGHT = False
 
 
 def num2char(num):
@@ -35,21 +36,23 @@ if __name__ == '__main__':
     capture = cv2.VideoCapture(0)
     num2charvec = np.vectorize(num2char)
 
-    with pyvirtualcam.Camera(width=CAM_WIDTH, height=CAM_HEIGHT, fps=CAM_FPS) as cam:
-        print(cam.device)
-        while cv2.waitKey(33) < 0:
-            ret, frame = capture.read()
-            frame = cv2.resize(frame, (ASCII_WIDTH, ASCII_HEIGHT))
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    while cv2.waitKey(33) < 0:
+        ret, frame = capture.read()
+        frame = cv2.resize(frame, (ASCII_WIDTH, ASCII_HEIGHT))
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        if REMOVE_LIGHT:
             inv_gray = cv2.bitwise_not(gray)
             th_ret, th_gray = cv2.threshold(inv_gray, 0, 255, cv2.THRESH_TOZERO + cv2.THRESH_OTSU)
-            char_arr = num2charvec(th_gray)
-            char_arr_endl = np.pad(char_arr, ((0, 0), (0, 1)), 'constant', constant_values='\n')
-            str_arr = np.reshape(char_arr_endl, -1)
-            _str = ''.join(str_arr)
-            str_frame = np.array(text_to_image(_str, FONT, 15))
-            str_frame = cv2.resize(str_frame, (CAM_WIDTH, CAM_HEIGHT))
-            
-            cam.send(str_frame)
-            cv2.imshow('', str_frame)
-            cam.sleep_until_next_frame()
+        else:
+            th_ret, th_gray = cv2.threshold(gray, 0, 255, cv2.THRESH_TOZERO + cv2.THRESH_OTSU)
+
+        char_arr = num2charvec(th_gray)
+        char_arr_endl = np.pad(char_arr, ((0, 0), (0, 1)), 'constant', constant_values='\n')
+        str_arr = np.reshape(char_arr_endl, -1)
+        _str = ''.join(str_arr)
+        str_frame = np.array(text_to_image(_str, FONT, 15))
+        str_frame = cv2.resize(str_frame, (CAM_WIDTH, CAM_HEIGHT))
+        
+        # cv2.imshow('th_gray', th_gray)
+        cv2.imshow('ASCIICam', str_frame)
+        time.sleep(1 / CAM_FPS)
