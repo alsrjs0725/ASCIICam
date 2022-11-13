@@ -11,7 +11,7 @@ CAM_FPS = 10
 ASCII_WIDTH = 64
 ASCII_HEIGHT = 36
 ASCII = '$8#hpZLYvr/)[_>I"\               '[::-1]
-REMOVE_LIGHT = False
+REMOVE_LIGHT = True
 
 
 def num2char(num):
@@ -33,12 +33,21 @@ font_align="center"):  # https://stackoverflow.com/a/72615131/16614074
 
 
 if __name__ == '__main__':
+    while True:
+        try:
+            camidx = int(input('Choose a integer that greater than 0 (cam index): '))
+            if camidx < 1:
+                raise ValueError()
+            break
+        except ValueError:
+            print('Not a integer that greater than 0')
+
     capture = cv2.VideoCapture(0)
     num2charvec = np.vectorize(num2char)
 
     while cv2.waitKey(33) < 0:
-        ret, frame = capture.read()
-        frame = cv2.resize(frame, (ASCII_WIDTH, ASCII_HEIGHT))
+        ret, frame_before_resizing = capture.read()
+        frame = cv2.resize(frame_before_resizing, (ASCII_WIDTH, ASCII_HEIGHT))
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         if REMOVE_LIGHT:
             inv_gray = cv2.bitwise_not(gray)
@@ -55,4 +64,5 @@ if __name__ == '__main__':
         
         # cv2.imshow('th_gray', th_gray)
         cv2.imshow('ASCIICam', str_frame)
+        cv2.imshow('Cam', frame_before_resizing)
         time.sleep(1 / CAM_FPS)
