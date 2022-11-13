@@ -11,7 +11,6 @@ CAM_FPS = 10
 ASCII_WIDTH = 64
 ASCII_HEIGHT = 36
 ASCII = '$8#hpZLYvr/)[_>I"\               '[::-1]
-REMOVE_LIGHT = True
 
 
 def num2char(num):
@@ -41,6 +40,16 @@ if __name__ == '__main__':
             break
         except ValueError:
             print('Not a integer that greater than 0')
+    while True:
+        inputval = input('Remove dark or light [d/l]: ')
+        if inputval.lower() == 'd':
+            remove_light = False
+            break
+        elif inputval.lower() == 'l':
+            remove_light = True
+            break
+        else:
+            print('Not a correct value')
 
     capture = cv2.VideoCapture(0)
     num2charvec = np.vectorize(num2char)
@@ -49,7 +58,7 @@ if __name__ == '__main__':
         ret, frame_before_resizing = capture.read()
         frame = cv2.resize(frame_before_resizing, (ASCII_WIDTH, ASCII_HEIGHT))
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        if REMOVE_LIGHT:
+        if remove_light:
             inv_gray = cv2.bitwise_not(gray)
             th_ret, th_gray = cv2.threshold(inv_gray, 0, 255, cv2.THRESH_TOZERO + cv2.THRESH_OTSU)
         else:

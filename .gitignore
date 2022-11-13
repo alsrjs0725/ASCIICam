@@ -1,4 +1,4 @@
-main.spec
 venv
 dist
 build
+*.spec
